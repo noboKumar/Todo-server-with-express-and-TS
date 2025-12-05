@@ -1,5 +1,5 @@
 dotenv.config();
-import express, { Request, Response } from "express";
+import express, { NextFunction, Request, Response } from "express";
 import { Pool } from "pg";
 import dotenv from "dotenv";
 
@@ -42,7 +42,13 @@ const initDB = async () => {
 };
 initDB();
 
-app.get("/", (req: Request, res: Response) => {
+// logger middleware
+const logger = (req: Request, res: Response, next: NextFunction) => {
+  console.log(`[${new Date().toString()}] ${req.method} ${req.path}`);
+  next();
+};
+
+app.get("/", logger,  (req: Request, res: Response) => {
   res.send("Hello World!");
 });
 
@@ -168,14 +174,14 @@ app.delete("/users/:id", async (req: Request, res: Response) => {
   }
 });
 
-  // 404 not found
-  app.use((req: Request, res: Response) => {
-    res.status(404).json({
-      success: false,
-      message: "route not found",
-      path: req.path,
-    });
+// 404 not found
+app.use((req: Request, res: Response) => {
+  res.status(404).json({
+    success: false,
+    message: "route not found",
+    path: req.path,
   });
+});
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
